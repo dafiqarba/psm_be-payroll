@@ -2,13 +2,13 @@ package entity
 
 //User represents users table in the database
 type User struct {
-	User_id  int    `json:"user_id"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
-	Position string `json:"position"`
-	Nik      string `json:"nik"`
-	Role_id  string `json:"role_id"`
+	User_id     int    `json:"user_id"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	Name        string `json:"name"`
+	Position_id string `json:"position"`
+	Nik         string `json:"nik"`
+	Role_id     string `json:"role_id"`
 }
 
 // -- TABLE DEFINITION FOR be_payroll db
