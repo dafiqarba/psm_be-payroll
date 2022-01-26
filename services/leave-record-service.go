@@ -8,6 +8,7 @@ import (
 type LeaveRecordService interface {
 	//Read
 	GetLeaveRecordDetail(req_id int, id int) (entity.LeaveRecord, error)
+	GetLeaveRecordList(id int, year string) ([]entity.LeaveRecordListModel, error)
 	//Insert
 	//InsertUser(user entity.User) (entity.User, error)
 }
@@ -24,4 +25,8 @@ func NewLeaveRecordService(leaveRecordRepo repository.LeaveRecordRepo) LeaveReco
 
 func (service *leaveRecordService) GetLeaveRecordDetail(req_id int, id int) (entity.LeaveRecord,error) {
 	return service.leaveRecordRepository.GetLeaveRecordDetail(req_id, id)
+}
+
+func (service *leaveRecordService) GetLeaveRecordList(id int, year string) ([]entity.LeaveRecordListModel,error) {
+	return service.leaveRecordRepository.GetLeaveRecordList(id, year)
 }
