@@ -38,12 +38,13 @@ func main() {
 		Leave Balance Detail	= /leave-balance?id=1&year=2022
 		Leave Record Detail		= /leave-record-detail?req_id=1&id=2
 		Leave Record List		= /leave-record-list?id=2&year=ASC
-		Create Leave Record		= ?
+		Create Leave Record		= /create-leave-record
 	 ------------------------------------------------------------------------*/
 	router.HandleFunc("/user-list", userController.GetUserList).Methods(http.MethodGet)
 	router.HandleFunc("/leave-balance", leaveBalanceController.GetLeaveBalance).Methods(http.MethodGet)
 	router.HandleFunc("/leave-record-detail", leaveRecordController.GetLeaveRecordDetail).Methods(http.MethodGet)
 	router.HandleFunc("/leave-record-list", leaveRecordController.GetLeaveRecordList).Methods(http.MethodGet)
+	router.HandleFunc("/create-leave-record", leaveRecordController.CreateLeaveRecord).Methods(http.MethodPost)
 	router.HandleFunc("/user-detail", userController.GetUserDetail).Methods(http.MethodGet)
 
 	//Start server
