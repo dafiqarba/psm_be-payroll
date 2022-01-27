@@ -47,7 +47,7 @@ func main() {
 	router.HandleFunc("/user-detail", userController.GetUserDetail).Methods(http.MethodGet)
 
 	//Start server
-	log.Println("|  Server listening on port: 8000")
+	log.Println("| Server listening on port: 8000")
 	log.Fatal(http.ListenAndServe("localhost:8000", router))
 
 }
