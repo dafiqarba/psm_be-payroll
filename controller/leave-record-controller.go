@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/dafiqarba/be-payroll/dto"
 	"github.com/dafiqarba/be-payroll/services"
 	"github.com/dafiqarba/be-payroll/utils"
 )
@@ -13,6 +14,7 @@ import (
 type LeaveRecordController interface {
 	GetLeaveRecordDetail(response http.ResponseWriter, request *http.Request)
 	GetLeaveRecordList(response http.ResponseWriter, request *http.Request)
+	CreateLeaveRecord(response http.ResponseWriter, request *http.Request)
 }
 
 type leaveRecordController struct {
@@ -61,4 +63,29 @@ func (c *leaveRecordController) GetLeaveRecordList(response http.ResponseWriter,
 	response.Header().Set("Content-Type", "application/json")
 	response.WriteHeader(http.StatusOK)
 	json.NewEncoder(response).Encode(utils.ResponseJSON(http.StatusOK,"OK",leaveRecordList))
+}
+
+func (c *leaveRecordController) CreateLeaveRecord(response http.ResponseWriter, request *http.Request) {
+	// Reference to CreateLeaveRecord data transfer obj
+	var createLeaveRecord dto.CreateLeaveRecordModel
+	// Retrieve body obj from request
+	errDec := json.NewDecoder(request.Body).Decode(&createLeaveRecord)
+	// Error handling
+	if errDec != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(response).Encode(errDec.Error())
+		return
+	}
+	// Forwarding data to service
+	var req_id, err = c.leaveRecordService.CreateLeaveRecord(createLeaveRecord)
+	if err != nil {
+		errMsg := errors.New("internal Server Error").Error()
+		response.Header().Set("Content-Type", "application/json")
+		response.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(response).Encode(utils.ErrorJSON(errMsg,http.StatusInternalServerError))
+		return 
+	}
+	response.Header().Set("Content-Type", "application/json")
+	response.WriteHeader(http.StatusCreated)
+	json.NewEncoder(response).Encode(utils.InsertResponseJSON(http.StatusCreated,"Request created",req_id))
 }

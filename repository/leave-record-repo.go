@@ -15,7 +15,7 @@ type LeaveRecordRepo interface {
 	GetLeaveRecordDetail(req_id int, id int) (entity.LeaveRecord, error)
 	GetLeaveRecordList(id int, year string) ([]entity.LeaveRecordListModel, error)
 	//Create
-	// InsertUser(user entity.User) (entity.User, error)
+	CreateLeaveRecord(d entity.LeaveRecord) (int, error)
 	//Update
 	//Delete
 }
@@ -49,10 +49,10 @@ func (db *leaveRecordConnection) GetLeaveRecordDetail(req_id int, id int) (entit
 	//Err Handling
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Println("| "+err.Error())
+			log.Println("| " + err.Error())
 			return leaveRecordDetail, err
 		} else {
-			log.Println("| "+err.Error())
+			log.Println("| " + err.Error())
 			return leaveRecordDetail, err
 		}
 	}
@@ -95,10 +95,31 @@ func (db *leaveRecordConnection) GetLeaveRecordList(id int, year string) ([]enti
 	}
 	// Check for empty result
 	if len(leaveRecordList) == 0 {
-		log.Println("| "+errors.New("sql: no results").Error())
+		log.Println("| " + errors.New("sql: no results").Error())
 		err := errors.New("sql: no results")
 		return leaveRecordList, err
 	}
 	// return leaveRecordlist populated with results
 	return leaveRecordList, err
+}
+
+func (db *leaveRecordConnection) CreateLeaveRecord(d entity.LeaveRecord) (int, error) {
+	var req_id int
+	// Insert SQL Query
+	query := `
+		INSERT INTO
+			leave_records 
+				(request_on, from_date, to_date, return_date, reason, mobile, address, status_id, leave_id, user_id)
+		VALUES
+			($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		RETURNING request_id	
+			;
+		`
+	err := db.connection.QueryRow(query, d.Request_on, d.From_date, d.To_date, d.Return_date, d.Reason, d.Mobile, d.Address, d.Status_id, d.Leave_id, d.User_id).Scan(&req_id)
+
+	if err != nil {
+		log.Println("| " + err.Error())
+		return 0, err
+	}
+	return req_id, err
 }
