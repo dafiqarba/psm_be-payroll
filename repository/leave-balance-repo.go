@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 
 	"github.com/dafiqarba/be-payroll/entity"
@@ -33,29 +32,23 @@ func NewLeaveBalanceRepo(dbConn *sql.DB) LeaveBalanceRepo {
 }
 
 func (db *leaveBalanceConnection) GetLeaveBalance(id int, year string) (entity.LeaveBalance, error) {
-	// kita tutup koneksinya di akhir proses
-	//defer db.connection.Close()
-	//Variable to store collection of users
+	//Variable to store leave balance detail
 	var leaveBalance entity.LeaveBalance
 	//Execute SQL Query
-	row := db.connection.QueryRow(`SELECT * FROM leave_balance WHERE user_id=$1 AND balance_year=$2`,id,year)
+	row := db.connection.QueryRow(`SELECT * FROM leave_balance WHERE user_id=$1 AND balance_year=$2`, id, year)
 	err := row.Scan(&leaveBalance.Balance_id, &leaveBalance.Balance_year, &leaveBalance.Cuti_tahunan, &leaveBalance.Cuti_diambil, &leaveBalance.Cuti_balance, &leaveBalance.Cuti_izin, &leaveBalance.Cuti_sakit, &leaveBalance.User_id)
 
-	//Error Handling
-	switch err {
-	case sql.ErrNoRows:
-		fmt.Println("Tidak ada data yang dicari!")
-		return leaveBalance, nil
-	case nil:
-		return leaveBalance, nil
-	default:
-		log.Fatalf("tidak bisa mengambil data. %v", err)
+	//Err Handling
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("| "+err.Error())
+			return leaveBalance, err
+		} else {
+			log.Println("| "+err.Error())
+			return leaveBalance, err
+		}
 	}
 
-	log.Println("|  Request received")
-	//Close the Execution of SQL Query
-	//defer rows.Close()
-	
-	// return empty buku atau jika error
+	// returns populated data
 	return leaveBalance, err
 }

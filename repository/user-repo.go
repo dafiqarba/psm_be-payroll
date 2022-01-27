@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 
 	"github.com/dafiqarba/be-payroll/entity"
@@ -14,7 +13,7 @@ import (
 type UserRepo interface {
 	//Read
 	GetUserList() ([]entity.User, error)
-	GetUserDetail(id int) (entity.User, error)
+	GetUserDetail(id int) (entity.UserDetailModel, error)
 	// GetLeaveRecordList() ([]entity.LeaveRecord, error)
 	// GetLeaveBalance() ([]entity.LeaveBalance, error)
 	//Create
@@ -34,8 +33,6 @@ func NewUserRepo(dbConn *sql.DB) UserRepo {
 }
 
 func (db *userConnection) GetUserList() ([]entity.User, error) {
-	// kita tutup koneksinya di akhir proses
-	//defer db.connection.Close()
 	//Variable to store collection of users
 	var users []entity.User
 	//Execute SQL Query
@@ -46,40 +43,49 @@ func (db *userConnection) GetUserList() ([]entity.User, error) {
 	}
 	log.Println("|  Requst received")
 	//Close the Execution of SQL Query
-	//defer rows.Close()
+	defer rows.Close()
 	//Iterate over all available rows and strore the data
 	for rows.Next() {
 		var user entity.User
-		// kita ambil datanya dan unmarshal ke structnya
+		// scan and assign into destination variable
 		err = rows.Scan(&user.User_id, &user.Email, &user.Password, &user.Name, &user.Position_id, &user.Nik, &user.Role_id)
 		if err != nil {
 			log.Fatalf("tidak bisa mengambil data. %v", err)
 		}
-		// masukkan kedalam slice bukus
+		// append to users slice
 		users = append(users, user)
 	}
-	// return empty buku atau jika error
+	// returns populated data
 	return users, err
 }
 
-func (db *userConnection) GetUserDetail(id int) (entity.User, error) {
+func (db *userConnection) GetUserDetail(id int) (entity.UserDetailModel, error) {
 
-	var userDetail entity.User
+	var userDetail entity.UserDetailModel
+	//SQL Query
+	query := `
+		SELECT 
+			u.user_id, u.name, u.position_id, u.nik, u.role_id, r.role_name, p.position_name 
+		FROM users AS u 
+			INNER JOIN roles AS r 
+				ON r.role_id = u.role_id 
+			INNER JOIN positions AS p 
+				ON p.position_id = u.position_id 
+		WHERE user_id=$1`
 	//Execute SQL Query
-	row := db.connection.QueryRow(`SELECT user_id, name, position_id, nik, role_id FROM users WHERE user_id=$1`,id)
-	err := row.Scan(&userDetail.User_id, &userDetail.Name, &userDetail.Position_id, &userDetail.Nik, &userDetail.Role_id)
+	row := db.connection.QueryRow(query,id)
+	err := row.Scan(&userDetail.User_id, &userDetail.Name, &userDetail.Position_id, &userDetail.Nik, &userDetail.Role_id, &userDetail.Role_name, &userDetail.Position_name)
 	
-	log.Println("|  Request received")
-	//Error Handling
-	switch err {
-	case sql.ErrNoRows:
-		fmt.Println("Tidak ada data yang dicari!")
-		return userDetail, nil
-	case nil:
-		return userDetail, nil
-	default:
-		log.Fatalf("tidak bisa mengambil data. %v", err)
-	}	
+	//Err Handling
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("| "+err.Error())
+			return userDetail, err
+		} else {
+			log.Println("| "+err.Error())
+			return userDetail, err
+		}
+	}
 	
 	// return empty buku atau jika error
 	return userDetail, err

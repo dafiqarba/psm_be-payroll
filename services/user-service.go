@@ -1,7 +1,6 @@
 package services
 
 import (
-	"github.com/dafiqarba/be-payroll/dto"
 	"github.com/dafiqarba/be-payroll/entity"
 	"github.com/dafiqarba/be-payroll/repository"
 )
@@ -9,7 +8,7 @@ import (
 type UserService interface {
 	//Read
 	GetUserList() ([]entity.User, error)
-	GetUserDetail(id int) (dto.UserDetailRes, error)
+	GetUserDetail(id int) (entity.UserDetailModel, error)
 	//Insert
 	//InsertUser(user entity.User) (entity.User, error)
 }
@@ -28,16 +27,8 @@ func (service *userService) GetUserList() ([]entity.User, error) {
 	return service.userRepository.GetUserList()
 }
  
-func (service *userService) GetUserDetail(id int) (dto.UserDetailRes, error) {
-	userDetail, err := service.userRepository.GetUserDetail(id)
-	var data = dto.UserDetailRes {
-			User_id  : userDetail.User_id,
-			Name     : userDetail.Name,
-			Position_id : userDetail.Position_id,
-			Nik      : userDetail.Nik,
-			Role_id  : userDetail.Role_id,
-	}
-	return data, err
+func (service *userService) GetUserDetail(id int) (entity.UserDetailModel, error) {
+	return service.userRepository.GetUserDetail(id)
 }
 
 

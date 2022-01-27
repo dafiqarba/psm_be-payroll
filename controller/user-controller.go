@@ -2,10 +2,12 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/dafiqarba/be-payroll/services"
+	"github.com/dafiqarba/be-payroll/utils"
 )
 
 type UserController interface {
@@ -39,13 +41,15 @@ func (c *userController) GetUserDetail(response http.ResponseWriter, request *ht
 	v := request.URL.Query()
 	id,_ := strconv.Atoi(v.Get("id"))
 
-	response.Header().Set("Content-Type", "application/json")
-	var users, err = c.userService.GetUserDetail(id)
+	var userDetail, err = c.userService.GetUserDetail(id)
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(`{"error": "Error getting the list"}`)
-		//response.Write([]byte(`{"error": Error getting the list"}`))
+		errMsg := errors.New("the server cannot find the requested resource").Error()
+		response.Header().Set("Content-Type", "application/json")
+		response.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(response).Encode(utils.ErrorJSON(errMsg, http.StatusNotFound))
+		return
 	}
+	response.Header().Set("Content-Type", "application/json")
 	response.WriteHeader(http.StatusOK)
-	json.NewEncoder(response).Encode(users)
+	json.NewEncoder(response).Encode(utils.ResponseJSON(http.StatusOK,"OK",userDetail))
 }
