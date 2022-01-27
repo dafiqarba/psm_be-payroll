@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 
@@ -30,30 +31,33 @@ func NewLeaveRecordRepo(dbConn *sql.DB) LeaveRecordRepo {
 }
 
 func (db *leaveRecordConnection) GetLeaveRecordDetail(req_id int, id int) (entity.LeaveRecord, error) {
-	// kita tutup koneksinya di akhir proses
-	//defer db.connection.Close()
-	//Variable to store collection of users
+	//Variable to store leave record detail
 	var leaveRecordDetail entity.LeaveRecord
+	//Query
+	query := `
+		SELECT 
+			* 
+		FROM 
+			leave_records 
+		WHERE 
+			request_id=$1 AND user_id=$2;
+	`
 	//Execute SQL Query
-	row := db.connection.QueryRow(`SELECT * FROM leave_records WHERE request_id=$1 AND user_id=$2`, req_id, id)
+	row := db.connection.QueryRow(query, req_id, id)
 	err := row.Scan(&leaveRecordDetail.Request_id, &leaveRecordDetail.Request_on, &leaveRecordDetail.From_date, &leaveRecordDetail.To_date, &leaveRecordDetail.Return_date, &leaveRecordDetail.Reason, &leaveRecordDetail.Mobile, &leaveRecordDetail.Address, &leaveRecordDetail.Status_id, &leaveRecordDetail.Leave_id, &leaveRecordDetail.User_id)
 
-	log.Println("|  Request received")
-	//Error Handling
-	switch err {
-	case sql.ErrNoRows:
-		fmt.Println("Tidak ada data yang dicari!")
-		return leaveRecordDetail, nil
-	case nil:
-		return leaveRecordDetail, nil
-	default:
-		log.Fatalf("tidak bisa mengambil data. %v", err)
+	//Err Handling
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("| "+err.Error())
+			return leaveRecordDetail, err
+		} else {
+			log.Println("| "+err.Error())
+			return leaveRecordDetail, err
+		}
 	}
 
-	//Close the Execution of SQL Query
-	//defer rows.Close()
-
-	// return empty buku atau jika error
+	// returns populated data
 	return leaveRecordDetail, err
 }
 
@@ -61,24 +65,40 @@ func (db *leaveRecordConnection) GetLeaveRecordList(id int, year string) ([]enti
 	// ORDER BY request_on DESC
 	var leaveRecordList []entity.LeaveRecordListModel
 	//Execute SQL Query
-	query := fmt.Sprintf("SELECT l.request_id, l.request_on, t.leave_name, l.reason, s.status_name, l.user_id FROM leave_records as l INNER JOIN status as s ON s.status_id = l.status_id INNER JOIN leave_types as t ON t.leave_id = l.leave_id WHERE l.user_id = %v ORDER BY l.request_on %v;", id, year)
+	query := fmt.Sprintf(`
+		SELECT 
+			l.request_id, l.request_on, t.leave_name, l.reason, s.status_name, l.user_id 
+		FROM 
+			leave_records as l 
+				INNER JOIN status as s 
+					ON s.status_id = l.status_id 
+				INNER JOIN leave_types as t 
+					ON t.leave_id = l.leave_id 
+		WHERE 
+			l.user_id = %v ORDER BY l.request_on %v;`, id, year)
 
 	rows, err := db.connection.Query(query)
 	if err != nil {
-		log.Fatalf("tidak bisa mengeksekusi query. %v", err)
+		log.Fatalf("cannot execute the query. %v", err)
 	}
-	log.Println("|  Requst received")
+	defer rows.Close()
 
 	for rows.Next() {
 		var leaveRecord entity.LeaveRecordListModel
-		// kita ambil datanya dan unmarshal ke structnya
+		// scan and assign into leaveRecord
 		err = rows.Scan(&leaveRecord.Request_id, &leaveRecord.Request_on, &leaveRecord.Leave_name, &leaveRecord.Reason, &leaveRecord.Status_name, &leaveRecord.User_id)
 		if err != nil {
-			log.Fatalf("tidak bisa mengambil data. %v", err)
+			log.Fatalf("cannot retrieve the data. %v", err)
 		}
-		// masukkan kedalam slice bukus
+		// append to leaveRecordList slices
 		leaveRecordList = append(leaveRecordList, leaveRecord)
 	}
-	// return empty leaveRecordlist atau jika error
+	// Check for empty result
+	if len(leaveRecordList) == 0 {
+		log.Println("| "+errors.New("sql: no results").Error())
+		err := errors.New("sql: no results")
+		return leaveRecordList, err
+	}
+	// return leaveRecordlist populated with results
 	return leaveRecordList, err
 }
