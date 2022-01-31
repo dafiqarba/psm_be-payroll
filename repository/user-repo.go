@@ -11,15 +11,12 @@ import (
 // TODO: search how to return a populated struct from function, if struct is defined
 
 type UserRepo interface {
+	//Create
+	CreateUser(user entity.User) (string, error)
 	//Read
+	FindByEmail(email string) (entity.UserLogin, error)
 	GetUserList() ([]entity.User, error)
 	GetUserDetail(id int) (entity.UserDetailModel, error)
-	// GetLeaveRecordList() ([]entity.LeaveRecord, error)
-	// GetLeaveBalance() ([]entity.LeaveBalance, error)
-	//Create
-	// InsertUser(user entity.User) (entity.User, error)
-	//Update
-	//Delete
 }
 
 type userConnection struct {
@@ -87,6 +84,60 @@ func (db *userConnection) GetUserDetail(id int) (entity.UserDetailModel, error) 
 		}
 	}
 	
-	// return empty buku atau jika error
+	// returns login data
 	return userDetail, err
+}
+
+
+func (db *userConnection) CreateUser (u entity.User) (string, error) {
+	//Variable that holds registered user email
+	var createdUser string
+	//Query
+	query := `
+		INSERT INTO 
+			users (name, password, email, nik, role_id, position_id) 
+		VALUES
+			($1, $2, $3, $4, $5, $6)
+		RETURNING email
+			;
+	`
+	//Execute query and Populating createdUser variable
+	err := db.connection.QueryRow(query, u.Name, u.Password, u.Email, u.Nik, u.Role_id, u.Position_id).Scan(&createdUser)
+	
+	if err != nil {
+		log.Println("| " + err.Error())
+		return "", err
+	}
+	//Returns registered user email and nil error
+	return createdUser, err
+}
+
+func (db *userConnection) FindByEmail (emailToCheck string) (entity.UserLogin, error) {
+	// Var to be populated with user data
+	var userData entity.UserLogin
+	//Query
+	query := `
+		SELECT 
+			u.user_id, u.email, u.password, u.role_id
+		FROM
+			users AS u
+		WHERE
+			email = $1;
+	`
+	//Execute
+	row := db.connection.QueryRow(query, emailToCheck)
+	err := row.Scan(&userData.User_id, &userData.Email, &userData.Password, &userData.Role_id)
+	//Err Handling
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("| "+err.Error())
+			return userData, err
+		} else {
+			log.Println("| "+err.Error())
+			return userData, err
+		}
+	}
+	
+	// returns login data
+	return userData, err
 }

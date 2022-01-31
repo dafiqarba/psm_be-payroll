@@ -11,6 +11,7 @@ import (
 )
 
 type UserController interface {
+	//Read Operation
 	GetUserList(response http.ResponseWriter, request *http.Request)
 	GetUserDetail(response http.ResponseWriter, request *http.Request)
 }
