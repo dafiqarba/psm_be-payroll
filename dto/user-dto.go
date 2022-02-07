@@ -13,5 +13,5 @@ type RegisterUser struct {
 	Email       string `json:"email"`
 	Nik         string `json:"nik"`
 	Role_id     int    `json:"role_id"`
-	Position_id int    `json:"position"`
+	Position_id int    `json:"position_id"`
 }
