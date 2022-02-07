@@ -1,14 +1,21 @@
 package utils
 
+import (
+	"encoding/json"
+	"net/http"
+)
+
 type ErrorResponse struct {
 	Status_code    int    `json:"status_code"`
 	Status_message string `json:"status_message"`
 }
 
-func ErrorJSON(err string, status int) ErrorResponse {
-	res := ErrorResponse{
+func BuildErrorResponse(r http.ResponseWriter, status int, message string) {
+	result := ErrorResponse{
 		Status_code:    status,
-		Status_message: err,
+		Status_message: message,
 	}
-	return res
+	r.Header().Set("Content-Type", "application/json")
+	r.WriteHeader(status)
+	json.NewEncoder(r).Encode(result)
 }

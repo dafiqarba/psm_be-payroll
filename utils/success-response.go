@@ -1,32 +1,40 @@
 package utils
 
+import (
+	"encoding/json"
+	"net/http"
+)
+
 //JSON success response model
 type SuccessResponse struct {
 	Status  int         `json:"status_code"`
 	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+	Results interface{} `json:"results"`
 }
 type InsertSuccessResponse struct {
-	Status     int    `json:"status_code"`
-	Message    string `json:"message"`
-	Request_id int    `json:"request_id"`
+	Status     int         `json:"status_code"`
+	Message    string      `json:"message"`
+	Created_id interface{} `json:"created_id"`
 }
 
-//Success response builder
-func ResponseJSON(status int, message string, data interface{}) SuccessResponse {
+func BuildResponse(r http.ResponseWriter, status int, message string, data interface{}) {
 	result := SuccessResponse{
 		Status:  status,
-		Message: "success",
-		Data:    data,
+		Message: message,
+		Results: data,
 	}
-	return result
+	r.Header().Set("Content-Type", "application/json")
+	r.WriteHeader(status)
+	json.NewEncoder(r).Encode(result)
 }
 
-func InsertResponseJSON(status int, message string, data int) InsertSuccessResponse {
+func BuildInsertResponse(r http.ResponseWriter, status int, message string, data interface{}) {
 	result := InsertSuccessResponse{
 		Status:     status,
 		Message:    message,
-		Request_id: data,
+		Created_id: data,
 	}
-	return result
+	r.Header().Set("Content-Type", "application/json")
+	r.WriteHeader(status)
+	json.NewEncoder(r).Encode(result)
 }
