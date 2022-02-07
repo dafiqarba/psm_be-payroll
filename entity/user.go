@@ -7,8 +7,8 @@ type User struct {
 	Password    string `json:"password"`
 	Email       string `json:"email"`
 	Nik         string `json:"nik"`
-	Role_id     int `json:"role_id"`
-	Position_id int `json:"position"`
+	Role_id     int    `json:"role_id"`
+	Position_id int    `json:"position"`
 }
 
 type UserDetailModel struct {
@@ -26,4 +26,5 @@ type UserLogin struct {
 	Email    string `json:"email"`
 	Password string `json:"-"`
 	Role_id  int    `json:"role_id"`
+	Token    string `json:"token"`
 }
