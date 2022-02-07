@@ -11,5 +11,6 @@ require (
 
 require (
 	github.com/felixge/httpsnoop v1.0.1 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	golang.org/x/crypto v0.0.0-20220128200615-198e4374d7ed
 )
