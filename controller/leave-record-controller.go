@@ -37,14 +37,10 @@ func (c *leaveRecordController) GetLeaveRecordDetail(response http.ResponseWrite
 
 	if err != nil {
 		errMsg := errors.New(" the server cannot find the requested resource").Error()
-		response.Header().Set("Content-Type", "application/json")
-		response.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(response).Encode(utils.ErrorJSON(errMsg, http.StatusNotFound))
+		utils.BuildErrorResponse(response, http.StatusNotFound, errMsg)
 		return
 	}
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	json.NewEncoder(response).Encode(utils.ResponseJSON(http.StatusOK,"OK", leaveRecordDetail))
+	utils.BuildResponse(response, http.StatusOK, "success", leaveRecordDetail)
 }
 
 func (c *leaveRecordController) GetLeaveRecordList(response http.ResponseWriter, request *http.Request) {
@@ -55,14 +51,10 @@ func (c *leaveRecordController) GetLeaveRecordList(response http.ResponseWriter,
 	var leaveRecordList, err = c.leaveRecordService.GetLeaveRecordList(id, year)
 	if err != nil {
 		errMsg := errors.New("the server cannot find the requested resource").Error()
-		response.Header().Set("Content-Type", "application/json")
-		response.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(response).Encode(utils.ErrorJSON(errMsg,http.StatusNotFound))
+		utils.BuildErrorResponse(response, http.StatusNotFound, errMsg)
 		return
 	}
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	json.NewEncoder(response).Encode(utils.ResponseJSON(http.StatusOK,"OK",leaveRecordList))
+	utils.BuildResponse(response, http.StatusOK, "success", leaveRecordList )
 }
 
 func (c *leaveRecordController) CreateLeaveRecord(response http.ResponseWriter, request *http.Request) {
@@ -72,20 +64,15 @@ func (c *leaveRecordController) CreateLeaveRecord(response http.ResponseWriter, 
 	errDec := json.NewDecoder(request.Body).Decode(&createLeaveRecord)
 	// Error handling
 	if errDec != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(errDec.Error())
+		utils.BuildErrorResponse(response, http.StatusInternalServerError, errDec.Error())
 		return
 	}
 	// Forwarding data to service
 	var req_id, err = c.leaveRecordService.CreateLeaveRecord(createLeaveRecord)
 	if err != nil {
 		errMsg := errors.New("internal Server Error").Error()
-		response.Header().Set("Content-Type", "application/json")
-		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(utils.ErrorJSON(errMsg,http.StatusInternalServerError))
+		utils.BuildErrorResponse(response, http.StatusInternalServerError, errMsg)
 		return 
 	}
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusCreated)
-	json.NewEncoder(response).Encode(utils.InsertResponseJSON(http.StatusCreated,"Request created",req_id))
+	utils.BuildInsertResponse(response, http.StatusCreated, "new leave record created", req_id)
 }

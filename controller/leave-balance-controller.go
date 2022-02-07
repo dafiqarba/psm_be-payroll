@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -32,13 +31,8 @@ func (c *leaveBalanceController) GetLeaveBalance(response http.ResponseWriter, r
 	var leaveBalance, err = c.leaveBalanceService.GetLeaveBalance(id, year)
 	if err != nil {
 		errMsg := errors.New(" the server cannot find the requested resource").Error()
-		response.Header().Set("Content-Type", "application/json")
-		response.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(response).Encode(utils.ErrorJSON(errMsg, http.StatusNotFound))
+		utils.BuildErrorResponse(response, http.StatusNotFound, errMsg)
 		return
-		//response.Write([]byte(`{"error": Error getting the list"}`))
 	}
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	json.NewEncoder(response).Encode(utils.ResponseJSON(http.StatusOK, "OK", leaveBalance))
+	utils.BuildResponse(response, http.StatusOK, "success", leaveBalance)
 }

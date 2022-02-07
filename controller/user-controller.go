@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -30,12 +29,9 @@ func (c *userController) GetUserList(response http.ResponseWriter, request *http
 	response.Header().Set("Content-Type", "application/json")
 	var users, err = c.userService.GetUserList()
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(`{"error": "Error getting the list"}`)
-		//response.Write([]byte(`{"error": Error getting the list"}`))
+		utils.BuildErrorResponse(response, http.StatusInternalServerError, err.Error())
 	}
-	response.WriteHeader(http.StatusOK)
-	json.NewEncoder(response).Encode(users)
+	utils.BuildResponse(response, http.StatusOK, "success", users)
 }
 
 func (c *userController) GetUserDetail(response http.ResponseWriter, request *http.Request) {
@@ -45,12 +41,8 @@ func (c *userController) GetUserDetail(response http.ResponseWriter, request *ht
 	var userDetail, err = c.userService.GetUserDetail(id)
 	if err != nil {
 		errMsg := errors.New("the server cannot find the requested resource").Error()
-		response.Header().Set("Content-Type", "application/json")
-		response.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(response).Encode(utils.ErrorJSON(errMsg, http.StatusNotFound))
+		utils.BuildErrorResponse(response, http.StatusNotFound, errMsg)
 		return
 	}
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	json.NewEncoder(response).Encode(utils.ResponseJSON(http.StatusOK,"OK",userDetail))
+	utils.BuildResponse(response, http.StatusOK, "success", userDetail)
 }
