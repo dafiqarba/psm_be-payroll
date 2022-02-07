@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/dafiqarba/be-payroll/dto"
 	"github.com/dafiqarba/be-payroll/services"
@@ -19,13 +20,14 @@ type AuthController interface {
 
 type authController struct {
 	authServ services.AuthService
-	// jwtServ services.JWTService
+	jwtServ services.JWTService
 	userServ services.UserService
 }
 
-func NewAuthController (authServ services.AuthService, userServ services.UserService) AuthController {
-	return &authController {
-		authServ : authServ,
+func NewAuthController(authServ services.AuthService, jwtServ services.JWTService, userServ services.UserService) AuthController {
+	return &authController{
+		authServ: authServ,
+		jwtServ: jwtServ,
 		userServ: userServ,
 	}
 }
@@ -37,27 +39,20 @@ func (c *authController) Login(response http.ResponseWriter, request *http.Reque
 	// Error handling
 	if errDec != nil {
 		response.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(response).Encode(errDec.Error())
+		utils.BuildErrorResponse(response, http.StatusBadRequest, errDec.Error())
 		return
 	}
 	// Forwarding data to service
 	var userLoginData, err = c.authServ.VerifyCredentials(userLogin)
 	if err != nil {
 		errMsg := errors.New("incorrect email/password").Error()
-		response.Header().Set("Content-Type", "application/json")
-		response.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(response).Encode(utils.ErrorJSON(errMsg, http.StatusUnauthorized))
+		utils.BuildErrorResponse(response, http.StatusUnauthorized, errMsg)
 		return
 	}
+	token := c.jwtServ.GenerateToken(strconv.Itoa(userLoginData.User_id))
+	userLoginData.Token = token
 
-		response.Header().Set("Access-Control-Allow-Origin", "*")
-		response.Header().Set("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
-		response.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
-		response.Header().Set("Content-Type", "application/json")
-		response.WriteHeader(http.StatusOK)
-		json.NewEncoder(response).Encode(utils.ResponseJSON(http.StatusOK, "login success", userLoginData))
-
-	
+	utils.BuildResponse(response, http.StatusOK, "success", userLoginData);
 }
 
 func (c *authController) Register(response http.ResponseWriter, request *http.Request) {
@@ -66,20 +61,15 @@ func (c *authController) Register(response http.ResponseWriter, request *http.Re
 	//Retrieve data from JSON
 	errDec := json.NewDecoder(request.Body).Decode(&regUser)
 	if errDec != nil {
-		response.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(response).Encode(errDec.Error())
+		utils.BuildErrorResponse(response, http.StatusBadRequest, errDec.Error())
 		return
 	}
 	//Forwarding data to user service
 	createdUser, err := c.userServ.CreateUser(regUser)
 	if err != nil {
 		errMsg := err.Error()
-		response.Header().Set("Content-Type", "application/json")
-		response.WriteHeader(http.StatusConflict)
-		json.NewEncoder(response).Encode(utils.ErrorJSON(errMsg, http.StatusConflict))
+		utils.BuildErrorResponse(response, http.StatusConflict, errMsg)
 		return
 	}
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	json.NewEncoder(response).Encode(utils.ResponseJSON(http.StatusOK,"OK",createdUser))
+	utils.BuildResponse(response, http.StatusOK, "success", createdUser);
 }
