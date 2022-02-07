@@ -7,6 +7,7 @@ import (
 
 	"github.com/dafiqarba/be-payroll/config"
 	"github.com/dafiqarba/be-payroll/controller"
+	"github.com/dafiqarba/be-payroll/middleware"
 	"github.com/dafiqarba/be-payroll/repository"
 	"github.com/dafiqarba/be-payroll/services"
 	"github.com/gorilla/handlers"
@@ -16,54 +17,66 @@ import (
 var (
 	db *sql.DB = config.SetupDatabaseConnection()
 
-	userRepository repository.UserRepo       = repository.NewUserRepo(db)
-	userService    services.UserService      = services.NewUserService(userRepository)
-	userController controller.UserController = controller.NewUserController(userService)
+	userRepo    repository.UserRepo       = repository.NewUserRepo(db)
+	userSvc     services.UserService      = services.NewUserService(userRepo)
+	userHandler controller.UserController = controller.NewUserController(userSvc)
 
-	leaveBalanceRepository repository.LeaveBalanceRepo       = repository.NewLeaveBalanceRepo(db)
-	leaveBalanceService    services.LeaveBalanceService      = services.NewLeaveBalanceService(leaveBalanceRepository)
-	leaveBalanceController controller.LeaveBalanceController = controller.NewLeaveBalanceController(leaveBalanceService)
+	leaveBalanceRepo    repository.LeaveBalanceRepo       = repository.NewLeaveBalanceRepo(db)
+	leaveBalanceSvc     services.LeaveBalanceService      = services.NewLeaveBalanceService(leaveBalanceRepo)
+	leaveBalanceHandler controller.LeaveBalanceController = controller.NewLeaveBalanceController(leaveBalanceSvc)
 
-	leaveRecordRepository repository.LeaveRecordRepo       = repository.NewLeaveRecordRepo(db)
-	leaveRecordService    services.LeaveRecordService      = services.NewLeaveRecordService(leaveRecordRepository)
-	leaveRecordController controller.LeaveRecordController = controller.NewLeaveRecordController(leaveRecordService)
+	leaveRecordRepo    repository.LeaveRecordRepo       = repository.NewLeaveRecordRepo(db)
+	leaveRecordSvc     services.LeaveRecordService      = services.NewLeaveRecordService(leaveRecordRepo)
+	leaveRecordHandler controller.LeaveRecordController = controller.NewLeaveRecordController(leaveRecordSvc)
 
-	authService services.AuthService = services.NewAuthService(userRepository)
-	authController controller.AuthController = controller.NewAuthController(authService, userService)
+	authService    services.AuthService      = services.NewAuthService(userRepo)
+	jwtService     services.JWTService       = services.NewJWTService()
+	authController controller.AuthController = controller.NewAuthController(authService, jwtService, userSvc)
 )
 
 func main() {
+	// Use gorilla mux
 	router := mux.NewRouter()
-
-    a := handlers.AllowedHeaders([]string{"content-type"})
-    // handlers.AllowedHeaders([]string{"Access-Control-Allow-Origin"}),
-    b := handlers.AllowedHeaders([]string{"X-Requested-With"})
-    c := handlers.AllowedOrigins([]string{"*"})
-	d := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
-    e := handlers.AllowCredentials()
-
+	// CORS handlers
+	headers := handlers.AllowedHeaders([]string{
+		"X-Requested-With", 
+		"Content-Type", 
+		"Authorization", 
+		"Access-Control-Allow-Origin"})
+	origins := handlers.AllowedOrigins([]string{"*"})
+	methods := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	credentials := handlers.AllowCredentials()
 
 	/*-----------------------------------------------------------------------
-		User Route:
+	1.	Admin & User role
+		Login					= /login
+		Register				= /register
 
+	2.	User Route:
 		User Detail				= /user-detail?id=2
 		Leave Balance Detail	= /leave-balance?id=1&year=2022
 		Leave Record Detail		= /leave-record-detail?req_id=1&id=2
 		Leave Record List		= /leave-record-list?id=2&year=ASC
 		Create Leave Record		= /create-leave-record
-		Login					= /login
+		TO DO:
+		a. deduct leave balance when user submit new leave record, with PUT method
+		b. payroll list
+
+	TO DO:
+	all route for admin
 	 ------------------------------------------------------------------------*/
-	router.HandleFunc("/user-list", userController.GetUserList).Methods(http.MethodGet)
-	router.HandleFunc("/leave-balance", leaveBalanceController.GetLeaveBalance).Methods(http.MethodGet)
-	router.HandleFunc("/leave-record-detail", leaveRecordController.GetLeaveRecordDetail).Methods(http.MethodGet)
-	router.HandleFunc("/leave-record-list", leaveRecordController.GetLeaveRecordList).Methods(http.MethodGet)
-	router.HandleFunc("/create-leave-record", leaveRecordController.CreateLeaveRecord).Methods(http.MethodPost)
-	router.HandleFunc("/user-detail", userController.GetUserDetail).Methods(http.MethodGet)
+	protectR := router.Methods(http.MethodPost, http.MethodGet).Subrouter()
+	protectR.HandleFunc("/user-list", userHandler.GetUserList).Methods(http.MethodGet)
+	protectR.HandleFunc("/leave-balance", leaveBalanceHandler.GetLeaveBalance).Methods(http.MethodGet)
+	protectR.HandleFunc("/leave-record-detail", leaveRecordHandler.GetLeaveRecordDetail).Methods(http.MethodGet)
+	protectR.HandleFunc("/leave-record-list", leaveRecordHandler.GetLeaveRecordList).Methods(http.MethodGet)
+	protectR.HandleFunc("/create-leave-record", leaveRecordHandler.CreateLeaveRecord).Methods(http.MethodPost)
+	protectR.HandleFunc("/user-detail", userHandler.GetUserDetail).Methods(http.MethodGet)
+	protectR.Use(middleware.AuthorizeJWT(jwtService))
+
 	router.HandleFunc("/register", authController.Register).Methods(http.MethodPost)
 	router.HandleFunc("/login", authController.Login).Methods(http.MethodPost)
 	//Start server
 	log.Println("| Server listening on port: 8000")
-	
-	log.Fatal(http.ListenAndServe("localhost:8000",handlers.CORS(a,b,c,d,e)(router)))
-
+	log.Fatal(http.ListenAndServe("localhost:8000", handlers.CORS(headers, origins, methods, credentials)(router)))
 }
