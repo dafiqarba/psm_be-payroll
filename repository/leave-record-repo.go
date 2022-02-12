@@ -44,7 +44,7 @@ func (db *leaveRecordConnection) GetLeaveRecordDetail(req_id int, id int) (entit
 	`
 	//Execute SQL Query
 	row := db.connection.QueryRow(query, req_id, id)
-	err := row.Scan(&leaveRecordDetail.Request_id, &leaveRecordDetail.Request_on, &leaveRecordDetail.From_date, &leaveRecordDetail.To_date, &leaveRecordDetail.Return_date, &leaveRecordDetail.Reason, &leaveRecordDetail.Mobile, &leaveRecordDetail.Address, &leaveRecordDetail.Status_id, &leaveRecordDetail.Leave_id, &leaveRecordDetail.User_id)
+	err := row.Scan(&leaveRecordDetail.Request_id, &leaveRecordDetail.Request_on, &leaveRecordDetail.From_date, &leaveRecordDetail.To_date, &leaveRecordDetail.Return_date, &leaveRecordDetail.Amount, &leaveRecordDetail.Reason, &leaveRecordDetail.Mobile, &leaveRecordDetail.Address, &leaveRecordDetail.Status_id, &leaveRecordDetail.Leave_id, &leaveRecordDetail.User_id)
 
 	//Err Handling
 	if err != nil {
@@ -109,13 +109,13 @@ func (db *leaveRecordConnection) CreateLeaveRecord(d entity.LeaveRecord) (int, e
 	query := `
 		INSERT INTO
 			leave_records 
-				(request_on, from_date, to_date, return_date, reason, mobile, address, status_id, leave_id, user_id)
+				(request_on, from_date, to_date, return_date, amount, reason, mobile, address, status_id, leave_id, user_id)
 		VALUES
-			($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		RETURNING request_id	
 			;
 		`
-	err := db.connection.QueryRow(query, d.Request_on, d.From_date, d.To_date, d.Return_date, d.Reason, d.Mobile, d.Address, d.Status_id, d.Leave_id, d.User_id).Scan(&req_id)
+	err := db.connection.QueryRow(query, d.Request_on, d.From_date, d.To_date, d.Return_date, d.Amount, d.Reason, d.Mobile, d.Address, d.Status_id, d.Leave_id, d.User_id).Scan(&req_id)
 
 	if err != nil {
 		log.Println("| " + err.Error())

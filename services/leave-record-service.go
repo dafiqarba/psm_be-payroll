@@ -47,12 +47,13 @@ func (service *leaveRecordService) CreateLeaveRecord(b dto.CreateLeaveRecordMode
 	leaveRecord.From_date,_ = time.Parse(time.RFC3339,b.From_date+"T00:00:00Z")
 	leaveRecord.To_date,_ = time.Parse(time.RFC3339,b.To_date+"T00:00:00Z") 
 	leaveRecord.Return_date,_ = time.Parse(time.RFC3339,b.Return_date+"T00:00:00Z")
+	leaveRecord.Amount,_ = strconv.Atoi(b.Amount) 
 	leaveRecord.Reason = b.Reason
 	leaveRecord.Mobile = b.Mobile
 	leaveRecord.Address = b.Address
 	leaveRecord.Status_id,_ = strconv.Atoi(b.Status_id) 
 	leaveRecord.Leave_id,_ = strconv.Atoi(b.Leave_id)
-	leaveRecord.User_id,_ = strconv.Atoi(b.User_id)
+	leaveRecord.User_id = b.User_id
 	// Forward to repo
 	return service.leaveRecordRepository.CreateLeaveRecord(leaveRecord)
 }
