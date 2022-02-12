@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/dafiqarba/be-payroll/config"
 	"github.com/dafiqarba/be-payroll/controller"
@@ -65,7 +66,7 @@ func main() {
 	TO DO:
 	all route for admin
 	 ------------------------------------------------------------------------*/
-	protectR := router.Methods(http.MethodPost, http.MethodGet).Subrouter()
+	protectR := router.Methods(http.MethodPost, http.MethodGet, http.MethodPut).Subrouter()
 	protectR.HandleFunc("/user-list", userHandler.GetUserList).Methods(http.MethodGet)
 	protectR.HandleFunc("/leave-balance", leaveBalanceHandler.GetLeaveBalance).Methods(http.MethodGet)
 	protectR.HandleFunc("/leave-record-detail", leaveRecordHandler.GetLeaveRecordDetail).Methods(http.MethodGet)
@@ -78,5 +79,5 @@ func main() {
 	router.HandleFunc("/login", authController.Login).Methods(http.MethodPost)
 	//Start server
 	log.Println("| Server listening on port: 8000")
-	log.Fatal(http.ListenAndServe("localhost:8000", handlers.CORS(headers, origins, methods, credentials)(router)))
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+os.Getenv("PORT"), handlers.CORS(headers, origins, methods, credentials)(router)))
 }
