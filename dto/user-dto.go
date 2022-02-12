@@ -9,6 +9,7 @@ type UserLogin struct {
 //Register data model
 type RegisterUser struct {
 	Name        string `json:"name"`
+	Username	string `json:"username"`
 	Password    string `json:"password"`
 	Email       string `json:"email"`
 	Nik         string `json:"nik"`
