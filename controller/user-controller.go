@@ -26,7 +26,7 @@ func NewUserController(userServ services.UserService) UserController {
 }
 
 func (c *userController) GetUserList(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("Content-Type", "application/json")
+
 	var users, err = c.userService.GetUserList()
 	if err != nil {
 		utils.BuildErrorResponse(response, http.StatusInternalServerError, err.Error())
