@@ -9,6 +9,7 @@ type LeaveRecord struct {
 	From_date   time.Time `json:"from_date"`
 	To_date     time.Time `json:"to_date"`
 	Return_date time.Time `json:"return_date"`
+	Amount      int       `json:"amount"`
 	Reason      string    `json:"reason"`
 	Mobile      string    `json:"mobile"`
 	Address     string    `json:"address"`
