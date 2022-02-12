@@ -3,6 +3,7 @@ package entity
 //User represents users table in the database
 type User struct {
 	User_id     int    `json:"user_id"`
+	Username    string `json:"username"`
 	Name        string `json:"name"`
 	Password    string `json:"password"`
 	Email       string `json:"email"`
@@ -13,6 +14,7 @@ type User struct {
 
 type UserDetailModel struct {
 	User_id       int    `json:"user_id"`
+	Username      string `json:"username"`
 	Name          string `json:"name"`
 	Position_id   int    `json:"position_id"`
 	Nik           string `json:"nik"`
@@ -23,6 +25,7 @@ type UserDetailModel struct {
 
 type UserLogin struct {
 	User_id  int    `json:"user_id"`
+	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"-"`
 	Role_id  int    `json:"role_id"`

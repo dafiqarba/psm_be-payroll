@@ -57,6 +57,7 @@ func (service *userService) CreateUser(d dto.RegisterUser) (string, error) {
 	}
 	registeredData := entity.User{
 		Name:        d.Name,
+		Username:    d.Username,
 		Password:    hashedPassword,
 		Email:       d.Email,
 		Nik:         d.Nik,

@@ -62,7 +62,7 @@ func (db *userConnection) GetUserDetail(id int) (entity.UserDetailModel, error) 
 	//SQL Query
 	query := `
 		SELECT 
-			u.user_id, u.name, u.position_id, u.nik, u.role_id, r.role_name, p.position_name 
+			u.user_id, u.username, u.name, u.position_id, u.nik, u.role_id, r.role_name, p.position_name 
 		FROM users AS u 
 			INNER JOIN roles AS r 
 				ON r.role_id = u.role_id 
@@ -71,7 +71,7 @@ func (db *userConnection) GetUserDetail(id int) (entity.UserDetailModel, error) 
 		WHERE user_id=$1`
 	//Execute SQL Query
 	row := db.connection.QueryRow(query,id)
-	err := row.Scan(&userDetail.User_id, &userDetail.Name, &userDetail.Position_id, &userDetail.Nik, &userDetail.Role_id, &userDetail.Role_name, &userDetail.Position_name)
+	err := row.Scan(&userDetail.User_id, &userDetail.Username, &userDetail.Name, &userDetail.Position_id, &userDetail.Nik, &userDetail.Role_id, &userDetail.Role_name, &userDetail.Position_name)
 	
 	//Err Handling
 	if err != nil {
@@ -95,14 +95,14 @@ func (db *userConnection) CreateUser (u entity.User) (string, error) {
 	//Query
 	query := `
 		INSERT INTO 
-			users (name, password, email, nik, role_id, position_id) 
+			users (username, name, password, email, nik, role_id, position_id) 
 		VALUES
-			($1, $2, $3, $4, $5, $6)
+			($1, $2, $3, $4, $5, $6, $7)
 		RETURNING email
 			;
 	`
 	//Execute query and Populating createdUser variable
-	err := db.connection.QueryRow(query, u.Name, u.Password, u.Email, u.Nik, u.Role_id, u.Position_id).Scan(&createdUser)
+	err := db.connection.QueryRow(query, u.Username, u.Name, u.Password, u.Email, u.Nik, u.Role_id, u.Position_id).Scan(&createdUser)
 	
 	if err != nil {
 		log.Println("| " + err.Error())
@@ -118,7 +118,7 @@ func (db *userConnection) FindByEmail (emailToCheck string) (entity.UserLogin, e
 	//Query
 	query := `
 		SELECT 
-			u.user_id, u.email, u.password, u.role_id
+			u.user_id, u.username, u.email, u.password, u.role_id
 		FROM
 			users AS u
 		WHERE
@@ -126,7 +126,7 @@ func (db *userConnection) FindByEmail (emailToCheck string) (entity.UserLogin, e
 	`
 	//Execute
 	row := db.connection.QueryRow(query, emailToCheck)
-	err := row.Scan(&userData.User_id, &userData.Email, &userData.Password, &userData.Role_id)
+	err := row.Scan(&userData.User_id, &userData.Username, &userData.Email, &userData.Password, &userData.Role_id)
 	//Err Handling
 	if err != nil {
 		if err == sql.ErrNoRows {
