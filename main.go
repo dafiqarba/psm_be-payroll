@@ -55,12 +55,12 @@ func main() {
 
 	2.	User Route:
 		User Detail				= /user-detail?id=2
+		Calc Leave Balance		= /update-leave-balance/:id
 		Leave Balance Detail	= /leave-balance?id=1&year=2022
 		Leave Record Detail		= /leave-record-detail?req_id=1&id=2
 		Leave Record List		= /leave-record-list?id=2&year=ASC
 		Create Leave Record		= /create-leave-record
 		TO DO:
-		a. deduct leave balance when user submit new leave record, with PUT method
 		b. payroll list
 
 	TO DO:
@@ -69,6 +69,7 @@ func main() {
 	protectR := router.Methods(http.MethodPost, http.MethodGet, http.MethodPut).Subrouter()
 	protectR.HandleFunc("/user-list", userHandler.GetUserList).Methods(http.MethodGet)
 	protectR.HandleFunc("/leave-balance", leaveBalanceHandler.GetLeaveBalance).Methods(http.MethodGet)
+	protectR.HandleFunc("/update-leave-balance/{user_id:[0-9]+}", leaveBalanceHandler.UpdateLeaveBalance).Methods(http.MethodPut)
 	protectR.HandleFunc("/leave-record-detail", leaveRecordHandler.GetLeaveRecordDetail).Methods(http.MethodGet)
 	protectR.HandleFunc("/leave-record-list", leaveRecordHandler.GetLeaveRecordList).Methods(http.MethodGet)
 	protectR.HandleFunc("/create-leave-record", leaveRecordHandler.CreateLeaveRecord).Methods(http.MethodPost)
