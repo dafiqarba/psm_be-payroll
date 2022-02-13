@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	"github.com/dafiqarba/be-payroll/entity"
@@ -13,11 +14,10 @@ import (
 type LeaveBalanceRepo interface {
 	//Read
 	GetLeaveBalance(id int, year string) (entity.LeaveBalance, error)
-	// GetLeaveRecordList() ([]entity.LeaveRecord, error)
-	// GetLeaveBalance() ([]entity.LeaveBalance, error)
 	//Create
 	// InsertUser(user entity.User) (entity.User, error)
 	//Update
+	UpdateLeaveBalance(updatedData entity.UpdateLeaveBalanceModel, leave_type string) (int, error)
 	//Delete
 }
 
@@ -41,14 +41,36 @@ func (db *leaveBalanceConnection) GetLeaveBalance(id int, year string) (entity.L
 	//Err Handling
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Println("| "+err.Error())
+			log.Println("| " + err.Error())
 			return leaveBalance, err
 		} else {
-			log.Println("| "+err.Error())
+			log.Println("| " + err.Error())
 			return leaveBalance, err
 		}
 	}
 
 	// returns populated data
 	return leaveBalance, err
+}
+
+func (db *leaveBalanceConnection) UpdateLeaveBalance(updatedData entity.UpdateLeaveBalanceModel, leave_type string) (int, error) {
+	var updatedColumn int
+	query := fmt.Sprintf(`
+		UPDATE 
+			leave_balance 
+		SET 
+			%v=%v, cuti_diambil=%v
+		WHERE 
+			user_id=%v
+		RETURNING %v;
+		`, leave_type, updatedData.Amounts, updatedData.Cuti_diambil, updatedData.User_id, leave_type)
+	err := db.connection.QueryRow(query).Scan(&updatedColumn)
+
+	if err != nil {
+		if err != nil {
+			log.Println("| " + err.Error())
+			return 0, err
+		}
+	}
+	return updatedColumn, err
 }
