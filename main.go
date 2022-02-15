@@ -13,10 +13,12 @@ import (
 	"github.com/dafiqarba/be-payroll/services"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	// "gorm.io/gorm"
 )
 
 var (
 	db *sql.DB = config.SetupDatabaseConnection()
+	// gormDB *gorm.DB = config.InitGormDB(db)
 
 	userRepo    repository.UserRepo       = repository.NewUserRepo(db)
 	userSvc     services.UserService      = services.NewUserService(userRepo)
