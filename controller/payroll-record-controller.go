@@ -16,6 +16,7 @@ type PayrollRecordController interface {
 	GetPayrollRecordList(response http.ResponseWriter, request *http.Request)
 	GetPayrollRecordDetail(response http.ResponseWriter, request *http.Request)
 	CreatePayrollRecord(response http.ResponseWriter, request *http.Request)
+	CreatePayrollRecordList(response http.ResponseWriter, request *http.Request)
 	UpdatePayrollRecord(response http.ResponseWriter, request *http.Request)
 }
 
@@ -80,6 +81,24 @@ func (c *payrollRecordController) CreatePayrollRecord(response http.ResponseWrit
 		return
 	}
 	utils.BuildInsertResponse(response, http.StatusCreated, "success created", newPayrollRecord)
+}
+
+// Go routine to create payroll record list
+func (c *payrollRecordController) CreatePayrollRecordList(response http.ResponseWriter, request *http.Request) {
+	var payrollRecordList []entity.PayrollRecord
+	errDec := json.NewDecoder(request.Body).Decode(&payrollRecordList)
+	if errDec != nil {
+		utils.BuildErrorResponse(response, http.StatusInternalServerError, errDec.Error())
+		return
+	}
+
+	newPayrollRecordList, err := c.payrollRecordService.CreatePayrollRecordList(payrollRecordList)
+	if err != nil {
+		errMsg := errors.New("internal Server Error").Error()
+		utils.BuildErrorResponse(response, http.StatusInternalServerError, errMsg)
+		return
+	}
+	utils.BuildInsertResponse(response, http.StatusCreated, "success created", newPayrollRecordList)
 }
 
 func (c *payrollRecordController) UpdatePayrollRecord(response http.ResponseWriter, request *http.Request) {

@@ -15,6 +15,7 @@ type PayrollRecordService interface {
 	//Create
 	CreatePayrollRecord(p entity.PayrollRecord) (entity.PayrollRecord, error)
 	// CreatePayrollRecord(p dto.CreatePayrollRecordModel) (int, error)
+	CreatePayrollRecordList(p []entity.PayrollRecord) ([]entity.PayrollRecord, error)
 }
 
 type payrollRecordService struct {
@@ -63,6 +64,24 @@ func (s *payrollRecordService) CreatePayrollRecord(p entity.PayrollRecord) (enti
 // 	return s.payrollRecordRepo.CreatePayrollRecord(payrollRecord)
 // }
 
+// Go Routine for Form Update List Payroll
+func (s *payrollRecordService) CreatePayrollRecordList(p []entity.PayrollRecord) ([]entity.PayrollRecord, error) {
+	n := len(p) / 2
+	channel := make(chan entity.PayrollRecord)
+
+	go addList(0, n, p, channel, s)
+	go addList(n, len(p), p, channel, s)
+
+	var result []entity.PayrollRecord
+	for i := 0; i < len(p); i++ {
+		payrollCreateList := <-channel
+
+		result = append(result, payrollCreateList)
+	}
+
+	return result, nil
+}
+
 // func (s *payrollRecordService) UpdatePayrollRecord(p entity.PayrollRecord) (int, error) {
 // 	var payrollRecord = entity.PayrollRecord{}
 // 	payrollRecord.Payment_period = p.Payment_period
@@ -89,4 +108,12 @@ func (s *payrollRecordService) UpdatePayrollRecord(id int, p entity.PayrollRecor
 	// payrollRecord.User_id = p.User_id
 
 	return s.payrollRecordRepo.UpdatePayrollRecord(id, p)
+}
+
+// Go Routine for Form Create List Payroll
+func addList(start int, end int, createList []entity.PayrollRecord, channel chan entity.PayrollRecord, s *payrollRecordService) {
+	for i := start; i < end; i++ {
+		payrollList, _ := s.CreatePayrollRecord(createList[i])
+		channel <- payrollList
+	}
 }

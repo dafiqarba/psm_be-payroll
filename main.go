@@ -92,6 +92,7 @@ func main() {
 	protectR.HandleFunc("/payroll/detail/{id:[0-9]+}", payrollRecordHandler.GetPayrollRecordDetail).Methods(http.MethodGet)
 	protectR.HandleFunc("/payroll/create", payrollRecordHandler.CreatePayrollRecord).Methods(http.MethodPost)
 	protectR.HandleFunc("/payroll/update/{id:[0-9]+}", payrollRecordHandler.UpdatePayrollRecord).Methods(http.MethodPut)
+	protectR.HandleFunc("/payroll/create-list", payrollRecordHandler.CreatePayrollRecordList).Methods(http.MethodPost)
 
 	protectR.Use(middleware.AuthorizeJWT(jwtService))
 
