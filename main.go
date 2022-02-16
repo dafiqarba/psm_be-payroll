@@ -13,6 +13,7 @@ import (
 	"github.com/dafiqarba/be-payroll/services"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	// "github.com/jinzhu/gorm"
 	// "gorm.io/gorm"
 )
 
@@ -32,6 +33,14 @@ var (
 	leaveRecordSvc     services.LeaveRecordService      = services.NewLeaveRecordService(leaveRecordRepo)
 	leaveRecordHandler controller.LeaveRecordController = controller.NewLeaveRecordController(leaveRecordSvc)
 
+	payrollRecordRepo    repository.PayrollRecordRepo       = repository.NewPayrollRecordRepo(db)
+	payrollRecordSvc     services.PayrollRecordService      = services.NewPayrollRecordService(payrollRecordRepo)
+	payrollRecordHandler controller.PayrollRecordController = controller.NewPayrollRecordController(payrollRecordSvc)
+
+	// adminApprovalRepo    repository.AdminApprovalRepo       = repository.NewApprovalRepo(gormDB)
+	// adminApprovalSvc     services.AdminApprovalService      = services.NewAdminApprovalService(adminApprovalRepo)
+	// adminApprovalHandler controller.AdminApprovalController = controller.NewAdminApprovalController(adminApprovalSvc)
+
 	authService    services.AuthService      = services.NewAuthService(userRepo)
 	jwtService     services.JWTService       = services.NewJWTService()
 	authController controller.AuthController = controller.NewAuthController(authService, jwtService, userSvc)
@@ -42,9 +51,9 @@ func main() {
 	router := mux.NewRouter()
 	// CORS handlers
 	headers := handlers.AllowedHeaders([]string{
-		"X-Requested-With", 
-		"Content-Type", 
-		"Authorization", 
+		"X-Requested-With",
+		"Content-Type",
+		"Authorization",
 		"Access-Control-Allow-Origin"})
 	origins := handlers.AllowedOrigins([]string{"*"})
 	methods := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
@@ -76,6 +85,14 @@ func main() {
 	protectR.HandleFunc("/leave-record-list", leaveRecordHandler.GetLeaveRecordList).Methods(http.MethodGet)
 	protectR.HandleFunc("/create-leave-record", leaveRecordHandler.CreateLeaveRecord).Methods(http.MethodPost)
 	protectR.HandleFunc("/user-detail", userHandler.GetUserDetail).Methods(http.MethodGet)
+
+	// protectR.HandleFunc("/admin-approval", adminApprovalHandler.GetAdminApprovalList).Methods(http.MethodGet)
+
+	protectR.HandleFunc("/payroll/list", payrollRecordHandler.GetPayrollRecordList).Methods(http.MethodGet)
+	protectR.HandleFunc("/payroll/detail/{id:[0-9]+}", payrollRecordHandler.GetPayrollRecordDetail).Methods(http.MethodGet)
+	protectR.HandleFunc("/payroll/create", payrollRecordHandler.CreatePayrollRecord).Methods(http.MethodPost)
+	protectR.HandleFunc("/payroll/update/{id:[0-9]+}", payrollRecordHandler.UpdatePayrollRecord).Methods(http.MethodPut)
+
 	protectR.Use(middleware.AuthorizeJWT(jwtService))
 
 	router.HandleFunc("/register", authController.Register).Methods(http.MethodPost)
