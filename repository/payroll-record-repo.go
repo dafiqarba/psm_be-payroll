@@ -14,11 +14,11 @@ type PayrollRecordRepo interface {
 	GetPayrollRecordList() ([]entity.PayrollRecordListModel, error)
 	GetPayrollRecordDetail(id int) (entity.PayrollRecordDetailModel, error)
 	//Create
-	CreatePayrollRecord(p entity.PayrollRecord) (entity.PayrollRecord, error)
-	// CreatePayrollRecord(p entity.PayrollRecord) (int, error)
+	// CreatePayrollRecord(p entity.PayrollRecord) (entity.PayrollRecord, error)
+	CreatePayrollRecord(p entity.PayrollRecord) (int, error)
 	//Update
-	// UpdatePayrollRecord(id int, p entity.PayrollRecord) (int, error)
-	UpdatePayrollRecord(id int, p entity.PayrollRecord) (entity.PayrollRecord, error)
+	UpdatePayrollRecord(id int, p entity.PayrollRecord) (int, error)
+	// UpdatePayrollRecord(id int, p entity.PayrollRecord) (entity.PayrollRecord, error)
 }
 
 type payrollRecordRepo struct {
@@ -110,74 +110,74 @@ func (db *payrollRecordRepo) GetPayrollRecordDetail(id int) (entity.PayrollRecor
 	return payrollRecord, err
 }
 
-func (db *payrollRecordRepo) CreatePayrollRecord(p entity.PayrollRecord) (entity.PayrollRecord, error) {
-	stmt, err := db.connection.Prepare(`
-		INSERT INTO payroll_records(
-			user_id, payment_period, payment_date, basic_salary, bpjs, tax, total_salary, status_id
-		) VALUES(
-			$1, $2, $3, $4, $5, $6, $7, $8
-		) RETURNING payroll_id;`)
-
-	stmt.Exec(p.User_id, p.Payment_period, p.Payment_date, p.Basic_salary, p.Bpjs, p.Tax, p.Total_salary, p.Status_id)
-
-	if err != nil {
-		log.Println("| " + err.Error())
-		return p, err
-	}
-
-	return p, err
-}
-
-// func (db *payrollRecordRepo) CreatePayrollRecord(p entity.PayrollRecord) (int, error) {
-// 	var user_id int
-
-// 	query := `
+// func (db *payrollRecordRepo) CreatePayrollRecord(p entity.PayrollRecord) (entity.PayrollRecord, error) {
+// 	stmt, err := db.connection.Prepare(`
 // 		INSERT INTO payroll_records(
 // 			user_id, payment_period, payment_date, basic_salary, bpjs, tax, total_salary, status_id
 // 		) VALUES(
 // 			$1, $2, $3, $4, $5, $6, $7, $8
-// 		) RETURNING payroll_id;`
+// 		) RETURNING payroll_id;`)
 
-// 	err := db.connection.QueryRow(query, p.User_id, p.Payment_period, p.Payment_date, p.Basic_salary, p.Bpjs, p.Tax, p.Total_salary, p.Status_id).Scan(&user_id)
+// 	stmt.Exec(p.User_id, p.Payment_period, p.Payment_date, p.Basic_salary, p.Bpjs, p.Tax, p.Total_salary, p.Status_id)
 
 // 	if err != nil {
 // 		log.Println("| " + err.Error())
-// 		return 0, err
+// 		return p, err
 // 	}
 
-// 	return user_id, err
+// 	return p, err
 // }
 
-func (db *payrollRecordRepo) UpdatePayrollRecord(id int, p entity.PayrollRecord) (entity.PayrollRecord, error) {
-	stmt, err := db.connection.Prepare(`
-		UPDATE payroll_records SET
-			user_id = $1, payment_period = $2, payment_date = $3, basic_salary = $4, bpjs = $5, tax = $6, total_salary = $7, status_id = $8
-		WHERE
-			payroll_id = $9;`)
+func (db *payrollRecordRepo) CreatePayrollRecord(p entity.PayrollRecord) (int, error) {
+	var user_id int
 
-	stmt.Exec(p.User_id, p.Payment_period, p.Payment_date, p.Basic_salary, p.Bpjs, p.Tax, p.Total_salary, p.Status_id, id)
+	query := `
+		INSERT INTO payroll_records(
+			user_id, payment_period, payment_date, basic_salary, bpjs, tax, total_salary, status_id
+		) VALUES(
+			$1, $2, $3, $4, $5, $6, $7, $8
+		) RETURNING payroll_id;`
+
+	err := db.connection.QueryRow(query, p.User_id, p.Payment_period, p.Payment_date, p.Basic_salary, p.Bpjs, p.Tax, p.Total_salary, p.Status_id).Scan(&user_id)
 
 	if err != nil {
 		log.Println("| " + err.Error())
-		return p, err
+		return 0, err
 	}
 
-	return p, err
+	return user_id, err
 }
 
-// func (db *payrollRecordRepo) UpdatePayrollRecord(id int, p entity.PayrollRecord) (int, error) {
+// func (db *payrollRecordRepo) UpdatePayrollRecord(id int, p entity.PayrollRecord) (entity.PayrollRecord, error) {
 // 	stmt, err := db.connection.Prepare(`
 // 		UPDATE payroll_records SET
 // 			user_id = $1, payment_period = $2, payment_date = $3, basic_salary = $4, bpjs = $5, tax = $6, total_salary = $7, status_id = $8
 // 		WHERE
 // 			payroll_id = $9;`)
 
-// 	stmt.Exec(p.User_id, p.Payment_period, p.Payment_date, p.Basic_salary, p.Bpjs, p.Tax, p.Total_salary, p.Status_id, p.Payroll_id)
+// 	stmt.Exec(p.User_id, p.Payment_period, p.Payment_date, p.Basic_salary, p.Bpjs, p.Tax, p.Total_salary, p.Status_id, id)
 
 // 	if err != nil {
 // 		log.Println("| " + err.Error())
-// 		return 0, err
+// 		return p, err
 // 	}
 
-// 	return p.Payroll_id, err
+// 	return p, err
 // }
+
+func (db *payrollRecordRepo) UpdatePayrollRecord(id int, p entity.PayrollRecord) (int, error) {
+	stmt, err := db.connection.Prepare(`
+		UPDATE payroll_records SET
+			user_id = $1, payment_period = $2, payment_date = $3, basic_salary = $4, bpjs = $5, tax = $6, total_salary = $7, status_id = $8
+		WHERE
+			payroll_id = $9;`)
+
+	stmt.Exec(p.User_id, p.Payment_period, p.Payment_date, p.Basic_salary, p.Bpjs, p.Tax, p.Total_salary, p.Status_id, p.Payroll_id)
+
+	if err != nil {
+		log.Println("| " + err.Error())
+		return 0, err
+	}
+
+	return p.Payroll_id, err
+}
