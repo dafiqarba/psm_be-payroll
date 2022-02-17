@@ -46,7 +46,16 @@ var (
 	authController controller.AuthController = controller.NewAuthController(authService, jwtService, userSvc)
 )
 
+func Route() {
+
+}
+
 func main() {
+	file, err := os.OpenFile("logs.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalln("Failed to open log file:", err)
+	}
+
 	// Use gorilla mux
 	router := mux.NewRouter()
 	// CORS handlers
@@ -98,6 +107,9 @@ func main() {
 
 	router.HandleFunc("/register", authController.Register).Methods(http.MethodPost)
 	router.HandleFunc("/login", authController.Login).Methods(http.MethodPost)
+
+	log.SetOutput(file)
+
 	//Start server
 	log.Println("| Server listening on port: 8000")
 	log.Fatal(http.ListenAndServe("0.0.0.0:"+os.Getenv("PORT"), handlers.CORS(headers, origins, methods, credentials)(router)))
