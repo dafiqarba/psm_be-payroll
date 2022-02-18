@@ -46,10 +46,6 @@ var (
 	authController controller.AuthController = controller.NewAuthController(authService, jwtService, userSvc)
 )
 
-func Route() {
-
-}
-
 func main() {
 	file, err := os.OpenFile("logs.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
